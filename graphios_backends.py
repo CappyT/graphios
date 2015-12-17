@@ -291,6 +291,18 @@ class carbon(object):
             path = self.build_path(m)
             value = m.VALUE
             timestamp = m.TIMET
+            
+            # Following snippet until ### is added in order to have Nagios service states stored into carbon.
+            # For this SERVICESTATEID should be injected instead of SERVICESTATE (change this in nagios.cfg)
+            m.LABEL = "State"
+            statuspath = self.build_path(m)
+            if self.carbon_plaintext:
+                status_item = "%s %s %s\n" % (statuspath, m.SERVICESTATE, timestamp)
+            else:
+                status_item = (statuspath, (timestamp, m.SERVICESTATE))
+            metric_list.append(status_item)
+            ###
+            
             if self.carbon_plaintext:
                 metric_item = "%s %s %s\n" % (path, value, timestamp)
             else:
