@@ -362,6 +362,8 @@ def process_log(file_name):
         if mobj:
             # break out the metric object into one object per perfdata metric
             # log.debug('perfdata:%s' % mobj.PERFDATA)
+
+
             for metric in mobj.PERFDATA.split():
                 try:
                     nobj = copy.copy(mobj)
@@ -375,6 +377,16 @@ def process_log(file_name):
                     log.critical("failed to parse label: '%s' part of perf"
                                  "string '%s'" % (metric, nobj.PERFDATA))
                     continue
+
+            try:
+                nobj = copy.copy(mobj)
+                nobj.LABEL = "state_id"
+                nobj.VALUE = mobj.SERVICESTATEID
+                processed_objects.append(nobj)
+            except:
+                continue
+
+
     return processed_objects
 
 
@@ -400,6 +412,13 @@ def get_mobj(nag_array):
         else:
             value = re.sub("\s", "", value)
             setattr(mobj, var_name, value)
+            print(var_name)
+
+    if mobj.SERVICESTATE:
+        stateMapping = dict(OK=0, WARNING=1, CRITICAL=2, UNKNOWN=3)
+        state = getattr(mobj, "SERVICESTATE", "UNKNOWN")
+        setattr(mobj, "SERVICESTATEID", stateMapping[state])
+
     mobj.validate()
     if mobj.VALID is True:
         return mobj
